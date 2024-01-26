@@ -2,7 +2,7 @@
 
 import sys, time, asyncio, requests, json, telegram
 from eventim import eventim_scan
-from luiza import luiza_scan
+from ticketmaster import ticketmaster_scan
 from tickets4fun import t4f_scan
 from fake_useragent import UserAgent
 from urllib.parse import urlparse
@@ -28,35 +28,20 @@ def check_availability(url) -> bool:
   domain = urlparse(url).hostname
   match domain:
     case "www.eventim.com.br":
-      return monitorate_eventim(req)
+      return monitorate_vendor(req, eventim_scan)
     case "www.ticketmaster.com.br":
-      return monitorate_luiza(req)
+      return monitorate_vendor(req, ticketmaster_scan)
     case "sales.ticketsforfun.com.br":
-      return monitorate_t4f(req.url)
+      return monitorate_vendor(req, t4f_scan)
     case _:
       print("Invalid domain")
       sys.exit(-1)
 
-def monitorate_eventim(req):
-  found_tickets = False
-  for pending_notification in eventim_scan(req):
+def monitorate_vendor(req, scan_vendor):
+  for pending_notification in scan_vendor(req):
     asyncio.run(send_telegram_notification(pending_notification))
-    found_tickets = True
-  return found_tickets
-
-def monitorate_luiza(req):
-  found_tickets = False
-  for pending_notification in luiza_scan(req):
-    asyncio.run(send_telegram_notification(pending_notification))
-    found_tickets = True
-  return found_tickets
-
-def monitorate_t4f(url):
-    found_tickets = False
-    for pending_notification in t4f_scan(url):
-      asyncio.run(send_telegram_notification(pending_notification))
-      found_tickets = True
-    return found_tickets
+    return True
+  return False
 
 async def send_telegram_notification(message):
   bot = telegram.Bot(token=config['botToken'])

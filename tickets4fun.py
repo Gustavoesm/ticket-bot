@@ -5,8 +5,8 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.common.by import By
 
-def t4f_scan(url):
-  html = extract_js_rendered_html(url)
+def t4f_scan(req):
+  html = extract_js_rendered_html(req.url)
   soup = BeautifulSoup(html, 'html.parser')
   tag = soup.find('div', 'q-list no-border q-list-separator q-list-multiline')
   dates = []
